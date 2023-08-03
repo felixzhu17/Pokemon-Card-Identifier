@@ -93,7 +93,7 @@ class PokemonImage:
         # Plot the original annotations
         for y, x in self.original_annotation:
             axs[0].plot(x, y, "ro")
-        axs[0].set_title("Original Image")
+        axs[0].set_title("Original Image", markersize=2)
 
         # Resized Image
         # Convert the tensor image to numpy and permute it for correct plotting
@@ -102,7 +102,31 @@ class PokemonImage:
         axs[1].imshow(resized_numpy_image)
         # Plot the resized annotations
         for y, x in self.resized_annotation:
-            axs[1].plot(x, y, "ro")
+            axs[1].plot(x, y, "ro", markersize=2)
         axs[1].set_title("Resized Image")
+
+        plt.show()
+
+    def plot_prediction(self, predicted_annotations):
+        fig, axs = plt.subplots(
+            1, 2, figsize=(12, 6)
+        )  # Create 1 row, 2 columns of subplots
+
+        # Resized Image
+        # Convert the tensor image to numpy and permute it for correct plotting
+        resized_numpy_image = self.resized_image.permute(1, 2, 0).numpy()
+        # Display the resized image
+        axs[0].imshow(resized_numpy_image)
+        # Plot the resized annotations
+        for y, x in self.resized_annotation:
+            axs[0].plot(x, y, "ro", markersize=2)
+        axs[0].set_title("Actual")
+
+        # Display the resized image
+        axs[1].imshow(resized_numpy_image)
+        # Plot the resized annotations
+        for y, x in predicted_annotations:
+            axs[1].plot(x, y, "ro", markersize=2)
+        axs[1].set_title("Predicted")
 
         plt.show()
