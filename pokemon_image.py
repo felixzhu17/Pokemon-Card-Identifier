@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import json
 from torchvision import transforms
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
 import torch
 
 
-class PokemonData(DataLoader):
+class PokemonData(Dataset):
     def __init__(self, dataset):
         self.dataset = dataset
 
@@ -15,19 +15,8 @@ class PokemonData(DataLoader):
         return len(self.dataset)
 
     def __getitem__(self, idx):
-        if isinstance(idx, slice):
-            indices = list(range(*idx.indices(len(self))))
-            images = torch.empty((len(indices), *self.dataset[0].resized_image.shape))
-            annotations = torch.empty((len(indices), *torch.tensor(self.dataset[0].resized_annotation).flatten().shape))
-            for i, index in enumerate(indices):
-                images[i] = self.dataset[index].resized_image.clone().detach()
-                annotations[i] = torch.tensor(self.dataset[index].resized_annotation).flatten()
-            return images, annotations
-        else:
-            return (
-                self.dataset[idx].resized_image.clone().detach(),
-                self.dataset[idx].resized_annotation.clone().detach().flatten()
-            )
+        return self.dataset[idx]
+
 
 def extract_corners(annotations):
     corners = []
@@ -102,7 +91,7 @@ class PokemonImage:
         # Display the original image
         axs[0].imshow(self.original_image)
         # Plot the original annotations
-        for (y, x) in self.original_annotation:
+        for y, x in self.original_annotation:
             axs[0].plot(x, y, "ro")
         axs[0].set_title("Original Image")
 
@@ -112,7 +101,7 @@ class PokemonImage:
         # Display the resized image
         axs[1].imshow(resized_numpy_image)
         # Plot the resized annotations
-        for (y, x) in self.resized_annotation:
+        for y, x in self.resized_annotation:
             axs[1].plot(x, y, "ro")
         axs[1].set_title("Resized Image")
 

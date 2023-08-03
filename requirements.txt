@@ -1,3 +1,5 @@
 torch
 transformers
 tqdm
+matplotlib
+timm
