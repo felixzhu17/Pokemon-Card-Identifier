@@ -5,7 +5,7 @@ import json
 from torchvision import transforms
 from torch.utils.data import Dataset
 import torch
-
+from torch.nn import MSELoss
 
 class PokemonData(Dataset):
     def __init__(self, dataset):
@@ -44,13 +44,14 @@ def load_image_data(image_dir, annotation_path):
 
 
 class PokemonImage:
-    def __init__(self, image, annotation, resized_image_size=(224, 224)):
+    def __init__(self, image, annotation = None, resized_image_size=(224, 224)):
         self.original_image = image
-        self.original_annotation = annotation
         self.original_image_size = image.size[:2]
         self.resized_image_size = resized_image_size
         self.resized_image = self.resize_image()
-        self.resized_annotation = self.resize_annotations()
+        if annotation:
+            self.original_annotation = annotation
+            self.resized_annotation = self.resize_annotations()
 
     def resize_image(self):
         transform = transforms.Compose(
@@ -80,6 +81,18 @@ class PokemonImage:
             (int(y * scale_y), int(x * scale_x)) for (y, x) in resized_annotations
         ]
         return original_annotations
+
+    def predict_annotations(self, model):
+        pred_annotations = model(self.resized_image.float().unsqueeze(0)).detach().cpu()
+
+        if hasattr(self, "resized_annotation"):
+            actual_annotations = torch.tensor(self.resized_annotation).flatten().float()
+            print("Loss: ", MSELoss()(pred_annotations, actual_annotations).item())
+
+        pred_annotations = pred_annotations.reshape(-1, 2).tolist()
+        pred_annotations = self.undo_resize_annotations(pred_annotations)
+        self.plot_prediction(pred_annotations)
+
 
     def plot(self):
         fig, axs = plt.subplots(
@@ -112,18 +125,15 @@ class PokemonImage:
             1, 2, figsize=(12, 6)
         )  # Create 1 row, 2 columns of subplots
 
-        # Resized Image
-        # Convert the tensor image to numpy and permute it for correct plotting
-        resized_numpy_image = self.resized_image.permute(1, 2, 0).numpy()
         # Display the resized image
-        axs[0].imshow(resized_numpy_image)
+        axs[0].imshow(self.original_image)
         # Plot the resized annotations
-        for y, x in self.resized_annotation:
+        for y, x in self.original_annotation:
             axs[0].plot(x, y, "ro", markersize=2)
         axs[0].set_title("Actual")
 
         # Display the resized image
-        axs[1].imshow(resized_numpy_image)
+        axs[1].imshow(self.original_image)
         # Plot the resized annotations
         for y, x in predicted_annotations:
             axs[1].plot(x, y, "ro", markersize=2)

@@ -51,6 +51,7 @@ def train_model(
     checkpoint_dir,
     model_name
 ):
+    model.train()
     for epoch in tqdm(range(num_epochs)):
         running_loss = 0.0  # reset running loss for each epoch
         for i, (inputs, targets) in enumerate(dataloader):
@@ -89,11 +90,14 @@ def find_latest_checkpoint(checkpoint_dir, model_name):
     return os.path.join(checkpoint_dir, checkpoints[-1])
 
 def load_checkpoint(checkpoint_path, model, optimizer = None):
-    checkpoint = torch.load(checkpoint_path)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    if optimizer:
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        return model, optimizer
+    if checkpoint_path:
+        checkpoint = torch.load(checkpoint_path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        if optimizer:
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            return model, optimizer
+        else:
+            return model
     else:
         return model
 
