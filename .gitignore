@@ -1,3 +1,5 @@
 test_env
-full_dataset.pkl
 model_checkpoints
+data
+train_images
+model
